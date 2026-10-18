@@ -1,0 +1,22 @@
+/** Firefly-in-the-night-forest palette. */
+export const colors = {
+  bgTop: '#050816',
+  bgBottom: '#0C1B2A',
+  cell: '#111A30',
+  cellBorder: '#1B2846',
+  cellLit: 'rgba(255, 212, 92, 0.12)',
+  glow: '#FFC53D',
+  trail: '#FFD45C',
+  trailCore: '#FFF6D0',
+  checkpointRing: '#FFE7A0',
+  checkpointFill: '#0B1226',
+  checkpointText: '#FFE7A0',
+  checkpointTextLit: '#2A1A00',
+  wall: '#3E8B62',
+  text: '#F3EBD3',
+  textDim: '#8D93A8',
+  button: '#18233F',
+  buttonBorder: '#2A3A62',
+  accent: '#FFD45C',
+  firefly: '#D7FF7A',
+};
