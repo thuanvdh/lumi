@@ -131,7 +131,8 @@ Cập nhật lần cuối: 2026-10-18
 - [ ] Script sinh 100–150 level + 2–3 cơ chế
 - [ ] Màn hình: Home, chọn level, chơi, thắng
 - [ ] Daily puzzle (seed theo ngày)
-- [ ] Sao, coin, lưu tiến độ (local)
+- [x] Lưu dữ liệu trên thiết bị (`expo-sqlite/kv-store`): màn đang chơi (mở lại chơi tiếp), thống kê, kỷ lục theo kích thước, streak, kích thước lưới gần nhất
+- [ ] Sao, coin
 - [ ] Âm thanh + haptic
 
 ### Giai đoạn 3 — Kiếm tiền (1 tuần)
@@ -159,3 +160,4 @@ Cập nhật lần cuối: 2026-10-18
 - **2026-10-18** — Hoàn thành engine Giai đoạn 1 (`src/engine/`): luật chơi, solver, generator nghiệm duy nhất, 6 unit test pass (`npm test`). Benchmark (`npm run bench`): 6×6 ~3ms, 7×7 ~18ms, 8×8 ~250ms (Node, Mac). Màn chơi đầu tiên (`src/game/`): Skia board, đường đom đóm phát sáng, đom đóm nền, haptic, undo/xoá/gợi ý, đồng hồ, màn thắng. Typecheck + lint + expo-doctor sạch.
 - **2026-10-18** — Chuẩn bị phát hành Google Play: `eas.json`, package `com.lumi.pathpuzzle` (tạm), icon + feature graphic tạm, nội dung store VI/EN, privacy policy VI/EN.
 - **2026-10-18** — Git: repo private https://github.com/thuanvdh/lumi. EAS: build APK preview đầu tiên thành công (versionCode 1).
+- **2026-10-18** — Lưu dữ liệu local (`src/progress/`): resume màn đang chơi + đồng hồ (tạm dừng khi app vào nền), thống kê / kỷ lục (chỉ tính màn không dùng gợi ý) / streak theo ngày. 4 test mới (tổng 10 pass).

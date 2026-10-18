@@ -33,6 +33,9 @@
         "projectId": "024d8876-0b39-4566-a465-8f397c11b483"
       }
     },
-    "owner": "vagabond2610"
+    "owner": "vagabond2610",
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }

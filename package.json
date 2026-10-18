@@ -6,6 +6,7 @@
     "@shopify/react-native-skia": "2.14.0",
     "expo": "~58.0.14",
     "expo-haptics": "~58.0.7",
+    "expo-sqlite": "~58.0.13",
     "expo-status-bar": "~58.0.3",
     "react": "19.3.0",
     "react-native": "0.88.0",
@@ -27,7 +28,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "node --test src/engine/*.test.ts",
+    "test": "node --test src/**/*.test.ts",
     "bench": "node scripts/bench.ts",
     "typecheck": "tsc --noEmit"
   },
