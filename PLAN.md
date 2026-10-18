@@ -103,7 +103,7 @@ Cập nhật lần cuối: 2026-10-18
 
 **Bạn làm (cần tài khoản / giấy tờ):**
 - [ ] Tạo tài khoản Google Play Console (25 USD), xác minh danh tính + số điện thoại
-- [ ] Tạo tài khoản Expo (miễn phí), chạy `npx eas-cli@latest login`
+- [x] Tạo tài khoản Expo (miễn phí), chạy `npx eas-cli@latest login` — tài khoản `vagabond2610`
 - [ ] Chốt **tên** + **package name** (đang tạm `com.lumi.pathpuzzle` — không đổi được sau lần upload đầu)
 - [ ] Host privacy policy (`store/privacy-policy.md`) lên URL public (GitHub Pages / Google Sites / Notion), điền email hỗ trợ
 - [ ] Gom ≥ 12 tester (Gmail) cho closed testing
@@ -117,8 +117,8 @@ Cập nhật lần cuối: 2026-10-18
 - [ ] Screenshot điện thoại (2–8 ảnh) — cần chạy app trên máy thật / emulator
 
 **Các bước build & nộp:**
-- [ ] `npx eas-cli@latest init` (gắn project với tài khoản Expo)
-- [ ] `npx eas-cli@latest build -p android --profile preview` → cài APK lên điện thoại, test
+- [x] `npx eas-cli@latest init` — project `@vagabond2610/lumi`, keystore Android lưu trên Expo
+- [ ] `npx eas-cli@latest build -p android --profile preview` → cài APK lên điện thoại, test — *APK đầu tiên đã build xong, chờ test trên máy thật*
 - [ ] `npx eas-cli@latest build -p android --profile production` → file `.aab`
 - [ ] Play Console: tạo app, điền Store listing, Data safety ("không thu thập dữ liệu"), Content rating (IARC), Target audience 13+, Ads = Không
 - [ ] Upload `.aab` **thủ công lần đầu** lên track Internal testing (Google yêu cầu)
@@ -158,3 +158,4 @@ Cập nhật lần cuối: 2026-10-18
 - **2026-10-18** — Phân tích game Zip, chốt concept đom đóm + Expo. Khởi tạo project Expo SDK 58 (blank-typescript).
 - **2026-10-18** — Hoàn thành engine Giai đoạn 1 (`src/engine/`): luật chơi, solver, generator nghiệm duy nhất, 6 unit test pass (`npm test`). Benchmark (`npm run bench`): 6×6 ~3ms, 7×7 ~18ms, 8×8 ~250ms (Node, Mac). Màn chơi đầu tiên (`src/game/`): Skia board, đường đom đóm phát sáng, đom đóm nền, haptic, undo/xoá/gợi ý, đồng hồ, màn thắng. Typecheck + lint + expo-doctor sạch.
 - **2026-10-18** — Chuẩn bị phát hành Google Play: `eas.json`, package `com.lumi.pathpuzzle` (tạm), icon + feature graphic tạm, nội dung store VI/EN, privacy policy VI/EN.
+- **2026-10-18** — Git: repo private https://github.com/thuanvdh/lumi. EAS: build APK preview đầu tiên thành công (versionCode 1).
