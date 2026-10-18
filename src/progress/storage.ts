@@ -1,10 +1,10 @@
 import Storage from 'expo-sqlite/kv-store';
-import { type SavedSession, type Settings, type Stats, emptyStats, isValidSession } from './progress.ts';
+import { type SavedSession, type Stats, emptyStats, isValidSession } from './progress.ts';
 
+// v2: levels + difficulty tiers replaced free grid-size choice.
 const KEYS = {
-  stats: 'lumi.stats.v1',
-  session: 'lumi.session.v1',
-  settings: 'lumi.settings.v1',
+  stats: 'lumi.stats.v2',
+  session: 'lumi.session.v2',
 };
 
 function read<T>(key: string): T | null {
@@ -26,7 +26,7 @@ function write(key: string, value: unknown) {
 
 export function loadStats(): Stats {
   const s = read<Stats>(KEYS.stats);
-  return s && typeof s.solved === 'number' && s.bySize && s.streak ? s : emptyStats();
+  return s && typeof s.solved === 'number' && s.byTier && s.streak ? s : emptyStats();
 }
 
 export const saveStats = (stats: Stats) => write(KEYS.stats, stats);
@@ -45,10 +45,3 @@ export function clearSession() {
     // Nothing saved — fine.
   }
 }
-
-export function loadSettings(): Settings | null {
-  const s = read<Settings>(KEYS.settings);
-  return s && typeof s.size === 'number' ? s : null;
-}
-
-export const saveSettings = (settings: Settings) => write(KEYS.settings, settings);

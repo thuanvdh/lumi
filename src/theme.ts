@@ -19,4 +19,7 @@ export const colors = {
   buttonBorder: '#2A3A62',
   accent: '#FFD45C',
   firefly: '#D7FF7A',
+  tierEasy: '#7EE08A',
+  tierMedium: '#FFC53D',
+  tierHard: '#FF7A6B',
 };

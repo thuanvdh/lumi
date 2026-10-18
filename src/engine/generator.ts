@@ -6,7 +6,10 @@ export interface GenerateOptions {
   size: number;
   /** Seed for reproducible puzzles (e.g. the date for the daily puzzle). */
   seed: number | string;
-  /** Stop removing checkpoints once this many remain. Lower = harder. */
+  /**
+   * Desired number of checkpoints. Lower = harder. The generator removes checkpoints down to
+   * this (as far as uniqueness allows) and adds evenly spaced ones if there are fewer.
+   */
   targetClues?: number;
   /** Number of walls to place (only between cells not consecutive in the solution). */
   walls?: number;
@@ -150,6 +153,22 @@ export function generatePuzzle({
       indices.delete(idx);
       const r = check();
       if (r.aborted || r.solutions.length !== 1) indices.add(idx);
+    }
+
+    // Phase 5: easier puzzles want more checkpoints — split the longest gaps.
+    // Extra checkpoints only constrain further, so the solution stays unique.
+    while (indices.size < Math.min(targetClues, total)) {
+      const sorted = [...indices].sort((a, b) => a - b);
+      let gapStart = 0;
+      let gapLen = 0;
+      for (let k = 1; k < sorted.length; k++) {
+        if (sorted[k] - sorted[k - 1] > gapLen) {
+          gapLen = sorted[k] - sorted[k - 1];
+          gapStart = sorted[k - 1];
+        }
+      }
+      if (gapLen < 2) break;
+      indices.add(gapStart + Math.floor(gapLen / 2));
     }
 
     return { size, numbers: numbersFromIndices(solution, indices), walls: wallList, solution };

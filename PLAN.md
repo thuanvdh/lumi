@@ -128,7 +128,9 @@ Cập nhật lần cuối: 2026-10-18
 
 ### Giai đoạn 2 — MVP (2–3 tuần)
 - [ ] Giao diện theme đom đóm (nền đêm, ô phát sáng, hạt sáng) — *đã có bản đầu ở Giai đoạn 1, cần polish*
-- [ ] Script sinh 100–150 level + 2–3 cơ chế
+- [x] Hệ thống màn chơi tăng dần độ khó: Màn 1–10 Dễ, 11–30 Trung bình, 31+ Khó; mỗi màn sinh ngẫu nhiên trong độ khó (kích thước, số gợi ý, dây leo) — `src/game/levels.ts`
+- [ ] Cân chỉnh độ khó theo phản hồi người chơi (ngưỡng màn, tỉ lệ số gợi ý)
+- [ ] 2–3 cơ chế mới (cổng, ô một chiều, …)
 - [ ] Màn hình: Home, chọn level, chơi, thắng
 - [ ] Daily puzzle (seed theo ngày)
 - [x] Lưu dữ liệu trên thiết bị (`expo-sqlite/kv-store`): màn đang chơi (mở lại chơi tiếp), thống kê, kỷ lục theo kích thước, streak, kích thước lưới gần nhất
@@ -161,3 +163,4 @@ Cập nhật lần cuối: 2026-10-18
 - **2026-10-18** — Chuẩn bị phát hành Google Play: `eas.json`, package `com.lumi.pathpuzzle` (tạm), icon + feature graphic tạm, nội dung store VI/EN, privacy policy VI/EN.
 - **2026-10-18** — Git: repo private https://github.com/thuanvdh/lumi. EAS: build APK preview đầu tiên thành công (versionCode 1).
 - **2026-10-18** — Lưu dữ liệu local (`src/progress/`): resume màn đang chơi + đồng hồ (tạm dừng khi app vào nền), thống kê / kỷ lục (chỉ tính màn không dùng gợi ý) / streak theo ngày. 4 test mới (tổng 10 pass).
+- **2026-10-18** — Bỏ chọn kích thước lưới → màn chơi đánh số, độ khó Dễ/Trung bình/Khó tự random theo màn. Generator thêm bước bổ sung số gợi ý cho màn dễ. Kỷ lục tính theo độ khó. Màn tiếp theo được sinh sẵn trong lúc hiệu ứng thắng chạy. Storage lên v2. 13 test pass.

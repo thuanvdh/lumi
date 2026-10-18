@@ -2,23 +2,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { type Cell, type Puzzle, Rules, generatePuzzle } from '../engine/index.ts';
+import { type Cell, type Puzzle, Rules } from '../engine/index.ts';
 import { colors } from '../theme.ts';
 import { Board } from './Board.tsx';
 import { Fireflies } from './Fireflies.tsx';
+import { TIERS, type Tier, puzzleForLevel, tierForLevel } from './levels.ts';
 import { type SavedSession, activeStreak, dayKey, recordWin } from '../progress/progress.ts';
 import {
   clearSession,
   loadSession,
-  loadSettings,
   loadStats,
   saveSession,
-  saveSettings,
   saveStats,
 } from '../progress/storage.ts';
 
-const SIZES = [5, 6, 7] as const;
-const wallsFor = (size: number) => (size >= 6 ? size - 3 : 0);
+const TIER_COLORS: Record<Tier, string> = {
+  easy: colors.tierEasy,
+  medium: colors.tierMedium,
+  hard: colors.tierHard,
+};
 
 function formatTime(ms: number) {
   const s = Math.floor(ms / 1000);
@@ -27,48 +29,68 @@ function formatTime(ms: number) {
 
 let seedCounter = Date.now();
 const nextSeed = () => ++seedCounter;
-const DEFAULT_SIZE = 6;
-
-const makePuzzle = (size: number) => generatePuzzle({ size, seed: nextSeed(), walls: wallsFor(size) });
 
 interface Game {
   id: number;
+  level: number;
+  tier: Tier;
   puzzle: Puzzle;
   /** Saved progress to continue from (only for the puzzle restored at launch). */
   resume?: SavedSession;
 }
 
-/** Restore the unfinished puzzle if there is one, otherwise start a fresh one at the last-used size. */
+function newGame(level: number): Game {
+  const { puzzle, tier } = puzzleForLevel(level, nextSeed());
+  return { id: nextSeed(), level, tier, puzzle };
+}
+
+/** Restore the unfinished puzzle if there is one, otherwise start the next level. */
 function initialGame(): Game {
   const saved = loadSession();
-  if (saved) return { id: nextSeed(), puzzle: saved.puzzle, resume: saved };
-  const size = loadSettings()?.size ?? DEFAULT_SIZE;
-  const puzzle = makePuzzle(SIZES.includes(size as (typeof SIZES)[number]) ? size : DEFAULT_SIZE);
-  return { id: nextSeed(), puzzle };
+  if (saved && saved.tier in TIERS) {
+    return { id: nextSeed(), level: saved.level, tier: saved.tier as Tier, puzzle: saved.puzzle, resume: saved };
+  }
+  return newGame(loadStats().solved + 1);
 }
 
 export function GameScreen() {
   const [game, setGame] = useState(initialGame);
   const [stats, setStats] = useState(loadStats);
-  const size = game.puzzle.size;
-
-  const newPuzzle = (nextSize = size) => {
-    const puzzle = makePuzzle(nextSize);
-    saveSettings({ size: nextSize });
-    setGame({ id: nextSeed(), puzzle });
-  };
+  // Next level is generated while the win animation plays (hard grids can take a moment).
+  const prepared = useRef<Game | null>(null);
 
   const onWin = (ms: number, hints: number) => {
     // Read from storage, not state: the gesture handler may hold an older render's closure.
-    const result = recordWin(loadStats(), { size, ms, hints, day: dayKey(new Date()) });
+    const result = recordWin(loadStats(), { tier: game.tier, ms, hints, day: dayKey(new Date()) });
     setStats(result.stats);
     saveStats(result.stats);
     clearSession();
-    return { newBest: result.newBest, bestMs: result.stats.bySize[String(size)].bestMs };
+    const nextLevel = game.level + 1;
+    setTimeout(() => {
+      prepared.current = newGame(nextLevel);
+    }, 300);
+    return { newBest: result.newBest, bestMs: result.stats.byTier[game.tier].bestMs };
   };
 
+  const nextLevel = () => {
+    const level = game.level + 1;
+    const next = prepared.current?.level === level ? prepared.current : newGame(level);
+    prepared.current = null;
+    setGame(next);
+  };
+
+  /** Swap the current puzzle for another one of the same level. */
+  const reroll = () => setGame(newGame(game.level));
+
+  const { level, tier } = game;
+  const onSave = useCallback(
+    (s: Omit<SavedSession, 'level' | 'tier'>) => saveSession({ level, tier, ...s }),
+    [level, tier],
+  );
+
   const streak = activeStreak(stats, dayKey(new Date()));
-  const best = stats.bySize[String(size)]?.bestMs ?? null;
+  const best = stats.byTier[tier]?.bestMs ?? null;
+  const nextTier = tierForLevel(level + 1);
 
   return (
     <View style={styles.root}>
@@ -82,21 +104,14 @@ export function GameScreen() {
         <View style={styles.statsRow}>
           <Stat icon="🔥" value={`${streak}`} label="ngày liên tiếp" />
           <Stat icon="✅" value={`${stats.solved}`} label="màn đã giải" />
-          <Stat icon="🏆" value={best !== null ? formatTime(best) : '–'} label={`kỷ lục ${size}×${size}`} />
+          <Stat icon="🏆" value={best !== null ? formatTime(best) : '–'} label={`kỷ lục ${TIERS[tier].label}`} />
         </View>
 
-        <View style={styles.sizeRow}>
-          {SIZES.map((s) => (
-            <Pressable
-              key={s}
-              onPress={() => newPuzzle(s)}
-              style={[styles.chip, s === size && styles.chipActive]}
-            >
-              <Text style={[styles.chipText, s === size && styles.chipTextActive]}>
-                {s}×{s}
-              </Text>
-            </Pressable>
-          ))}
+        <View style={styles.levelRow}>
+          <Text style={styles.levelText}>Màn {level}</Text>
+          <View style={[styles.tierBadge, { borderColor: TIER_COLORS[tier] }]}>
+            <Text style={[styles.tierText, { color: TIER_COLORS[tier] }]}>{TIERS[tier].label}</Text>
+          </View>
         </View>
 
         {/* Keyed by game so all play state resets with a new puzzle. */}
@@ -104,9 +119,11 @@ export function GameScreen() {
           key={game.id}
           puzzle={game.puzzle}
           resume={game.resume}
+          unlocks={nextTier !== tier ? TIERS[nextTier].label : null}
           onWin={onWin}
-          onSave={saveSession}
-          onNext={() => newPuzzle()}
+          onSave={onSave}
+          onNext={nextLevel}
+          onReroll={reroll}
         />
       </SafeAreaView>
     </View>
@@ -134,12 +151,15 @@ interface Clock {
 interface SessionProps {
   puzzle: Puzzle;
   resume?: SavedSession;
+  /** Label of the difficulty the next level unlocks, if it changes. */
+  unlocks: string | null;
   onWin: (ms: number, hints: number) => { newBest: boolean; bestMs: number | null };
-  onSave: (session: SavedSession) => void;
+  onSave: (session: Omit<SavedSession, 'level' | 'tier'>) => void;
   onNext: () => void;
+  onReroll: () => void;
 }
 
-function PuzzleSession({ puzzle, resume, onWin, onSave, onNext }: SessionProps) {
+function PuzzleSession({ puzzle, resume, unlocks, onWin, onSave, onNext, onReroll }: SessionProps) {
   const { width } = useWindowDimensions();
   const boardSize = Math.min(width - 32, 460);
   const rules = useMemo(() => new Rules(puzzle), [puzzle]);
@@ -292,6 +312,7 @@ function PuzzleSession({ puzzle, resume, onWin, onSave, onNext }: SessionProps) 
           {!result.newBest && result.bestMs !== null && (
             <Text style={styles.winSub}>Kỷ lục: {formatTime(result.bestMs)}</Text>
           )}
+          {unlocks && <Text style={styles.unlock}>🔓 Mở khoá độ khó {unlocks}!</Text>}
           <Pressable style={styles.primary} onPress={onNext}>
             <Text style={styles.primaryText}>Màn tiếp theo</Text>
           </Pressable>
@@ -301,7 +322,7 @@ function PuzzleSession({ puzzle, resume, onWin, onSave, onNext }: SessionProps) 
           <ControlButton label="Hoàn tác" icon="↶" onPress={undo} />
           <ControlButton label="Xoá" icon="⟲" onPress={clear} />
           <ControlButton label="Gợi ý" icon="💡" onPress={hint} />
-          <ControlButton label="Màn mới" icon="✦" onPress={onNext} />
+          <ControlButton label="Đổi màn" icon="✦" onPress={onReroll} />
         </View>
       )}
     </>
@@ -327,18 +348,10 @@ const styles = StyleSheet.create({
   statLabel: { color: colors.textDim, fontSize: 11, marginTop: 2 },
   title: { color: colors.accent, fontSize: 40, fontWeight: '800', letterSpacing: 2 },
   subtitle: { color: colors.textDim, fontSize: 14, marginTop: 4, textAlign: 'center' },
-  sizeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.buttonBorder,
-    backgroundColor: colors.button,
-  },
-  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { color: colors.text, fontWeight: '600' },
-  chipTextActive: { color: '#2A1A00' },
+  levelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  levelText: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  tierBadge: { borderWidth: 1.5, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 2 },
+  tierText: { fontSize: 13, fontWeight: '700' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   timer: { color: colors.text, fontSize: 16, fontVariant: ['tabular-nums'], minWidth: 56 },
   progressTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.button, overflow: 'hidden' },
@@ -362,6 +375,7 @@ const styles = StyleSheet.create({
   winTitle: { color: colors.accent, fontSize: 26, fontWeight: '800' },
   winText: { color: colors.text, fontSize: 15 },
   winSub: { color: colors.textDim, fontSize: 13 },
+  unlock: { color: colors.firefly, fontSize: 15, fontWeight: '700' },
   primary: {
     marginTop: 8,
     backgroundColor: colors.accent,
