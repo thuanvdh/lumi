@@ -118,3 +118,7 @@ Keystore Android được lưu trên EAS (project `@vagabond2610/lumi`). Lần u
 ## Lộ trình
 
 Giai đoạn tiếp theo: Daily Puzzle, sao và coin, âm thanh, cơ chế mới (cổng dịch chuyển, ô một chiều…), quảng cáo và mua trong app, bảng xếp hạng. Xem [PLAN.md](PLAN.md).
+
+## Giấy phép
+
+[MIT](LICENSE) © 2026 ThuanHo

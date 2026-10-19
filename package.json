@@ -32,5 +32,6 @@
     "bench": "node scripts/bench.ts",
     "typecheck": "tsc --noEmit"
   },
-  "private": true
+  "private": true,
+  "license": "MIT"
 }
